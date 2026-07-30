@@ -260,18 +260,22 @@
       'mPAY test redirect target - MPAY_REDIRECT_FAIL_URL. Received at ' +
       new Date().toLocaleString() + '. For local/UAT integration testing only.';
 
-    // App-first, website-fallback redirect - env comes from the backend
-    // (Local/Develop/QA/Production maps to a short code), the actual
-    // deep-link/web-fallback URLs are resolved from ENV_CONFIG above.
+    // Device decides the target, not a timer/race - mobile gets the app
+    // deep link (there's an app to open), desktop browsers go straight to
+    // the website (there's no app to try).
+    function isMobileDevice() {
+      return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    }
+
     var cfg = ENV_CONFIG[params.get('env')] || ENV_CONFIG.local;
-    var deepLink = cfg.deepLink;
-    var webFallback = cfg.webFallback;
+    var onMobile = isMobileDevice();
+    var target = onMobile ? cfg.deepLink : cfg.webFallback;
     var redirectNote = document.getElementById('redirect-note');
     var backButton = document.getElementById('back-to-merchant-btn');
 
     // Carry the transaction params (orderId, paymentId, amount,
-    // transactionId, etc.) through to wherever we send the user back -
-    // deep link or website - so the app/site has the same context.
+    // transactionId, etc.) through to the app/website so it has the same
+    // context.
     function appendParams(url, rows) {
       var hasQuery = url.indexOf('?') !== -1;
       var qs = rows.map(function (r) {
@@ -282,40 +286,24 @@
     }
 
     // Shared by the automatic attempt on load and the manual button click -
-    // tries the app deep link first, falls back to the website if the app
-    // doesn't take over the tab within `delay` ms (detected via
-    // visibilitychange, since a successful app-open backgrounds this tab).
-    function attemptAppOpen(delay) {
-      if (!deepLink || !webFallback) return;
-      var finalDeepLink = appendParams(deepLink, rows);
-      var finalWebFallback = appendParams(webFallback, rows);
-
-      redirectNote.textContent = 'Opening the BeDee app…';
+    // no countdown/fallback timer, just goes straight to whichever target
+    // this device resolved to above.
+    function goToMerchant() {
+      if (!target) return;
+      var finalUrl = appendParams(target, rows);
+      redirectNote.textContent = onMobile ? 'Opening the BeDee app…' : 'Returning to bedee.com…';
       redirectNote.style.display = 'block';
-
-      var fallbackTimer = setTimeout(function () {
-        redirectNote.textContent = 'Returning to bedee.com…';
-        window.location.href = finalWebFallback;
-      }, delay);
-
-      document.addEventListener('visibilitychange', function onVisibility() {
-        if (document.hidden) {
-          clearTimeout(fallbackTimer);
-          document.removeEventListener('visibilitychange', onVisibility);
-        }
-      });
-
-      window.location.href = finalDeepLink;
+      window.location.href = finalUrl;
     }
 
-    if (deepLink && webFallback) {
-      setTimeout(function () { attemptAppOpen(2500); }, 300);
+    if (target) {
+      setTimeout(function () { goToMerchant(); }, 300);
     } else {
       backButton.style.display = 'none';
     }
 
     backButton.addEventListener('click', function () {
-      attemptAppOpen(1500);
+      goToMerchant();
     });
   })();
 </script>
