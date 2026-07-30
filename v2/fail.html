@@ -187,6 +187,30 @@
     width: 100%;
   }
   .cta-button:active { opacity: 0.85; }
+
+  .countdown-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .countdown-track {
+    width: 100%;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--accent-bg);
+    overflow: hidden;
+  }
+  .countdown-bar {
+    height: 100%;
+    width: 100%;
+    background: var(--accent);
+    transition: width 1s linear;
+  }
+  .countdown-text {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
 </style>
 
 <div class="card">
@@ -203,6 +227,11 @@
   </div>
 
   <div class="details" id="details"></div>
+
+  <div class="countdown-wrap" id="countdown-wrap">
+    <div class="countdown-track"><div class="countdown-bar" id="countdown-bar"></div></div>
+    <p class="countdown-text" id="countdown-text"></p>
+  </div>
 
   <p class="redirect-note" id="redirect-note"></p>
 
@@ -268,6 +297,9 @@
     var webFallback = cfg.webFallback;
     var redirectNote = document.getElementById('redirect-note');
     var backButton = document.getElementById('back-to-merchant-btn');
+    var countdownWrap = document.getElementById('countdown-wrap');
+    var countdownBar = document.getElementById('countdown-bar');
+    var countdownText = document.getElementById('countdown-text');
 
     // Carry the transaction params (orderId, paymentId, amount,
     // transactionId, etc.) through to wherever we send the user back -
@@ -308,13 +340,48 @@
       window.location.href = finalDeepLink;
     }
 
+    // Visible 20s countdown gives the tester time to read the page and
+    // decide - auto-redirects when it hits 0, or the button jumps straight
+    // to the redirect attempt and cancels the countdown.
+    var COUNTDOWN_SECONDS = 20;
+    var remaining = COUNTDOWN_SECONDS;
+    var countdownTimer = null;
+
+    function updateCountdownUI() {
+      countdownBar.style.width = (remaining / COUNTDOWN_SECONDS * 100) + '%';
+      countdownText.textContent = 'Redirecting automatically in ' + remaining + 's — or tap the button below to go now.';
+    }
+
+    function stopCountdown() {
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+      }
+      countdownWrap.style.display = 'none';
+    }
+
+    function startCountdown() {
+      updateCountdownUI();
+      countdownTimer = setInterval(function () {
+        remaining -= 1;
+        if (remaining <= 0) {
+          stopCountdown();
+          attemptAppOpen(2500);
+        } else {
+          updateCountdownUI();
+        }
+      }, 1000);
+    }
+
     if (deepLink && webFallback) {
-      setTimeout(function () { attemptAppOpen(2500); }, 300);
+      startCountdown();
     } else {
+      countdownWrap.style.display = 'none';
       backButton.style.display = 'none';
     }
 
     backButton.addEventListener('click', function () {
+      stopCountdown();
       attemptAppOpen(1500);
     });
   })();
