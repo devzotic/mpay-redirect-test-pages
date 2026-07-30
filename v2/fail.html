@@ -185,8 +185,13 @@
     padding: 13px 16px;
     cursor: pointer;
     width: 100%;
+    display: inline-block;
+    text-align: center;
+    text-decoration: none;
+    box-sizing: border-box;
   }
   .cta-button:active { opacity: 0.85; }
+  .cta-button[aria-hidden="true"] { display: none; }
 </style>
 
 <div class="card">
@@ -206,7 +211,7 @@
 
   <p class="redirect-note" id="redirect-note"></p>
 
-  <button type="button" class="cta-button" id="back-to-merchant-btn">Back to BeDee</button>
+  <a class="cta-button" id="back-to-merchant-btn" href="#">Back to BeDee</a>
 
   <p class="footer-note" id="footer-note">
     mPAY test redirect target — MPAY_REDIRECT_FAIL_URL. This page is for local/UAT integration testing only.
@@ -285,26 +290,30 @@
       return url + (hasQuery ? '&' : '?') + qs;
     }
 
-    // Shared by the automatic attempt on load and the manual button click -
-    // no countdown/fallback timer, just goes straight to whichever target
-    // this device resolved to above.
-    function goToMerchant() {
-      if (!target) return;
-      var finalUrl = appendParams(target, rows);
-      redirectNote.textContent = onMobile ? 'Opening the BeDee app…' : 'Returning to bedee.com…';
-      redirectNote.style.display = 'block';
-      window.location.href = finalUrl;
-    }
+    var finalUrl = target ? appendParams(target, rows) : null;
 
-    if (target) {
-      setTimeout(function () { goToMerchant(); }, 300);
+    if (finalUrl) {
+      // Set the real href instead of navigating via JS - mobile browsers
+      // block/ignore a location.href assignment to a custom scheme unless
+      // it's a native anchor tap (the same reason a link tapped in the
+      // Notes app opens the app but a script-driven redirect to the same
+      // URI silently does nothing).
+      backButton.href = finalUrl;
+
+      if (onMobile) {
+        redirectNote.textContent = 'Tap below to open the BeDee app.';
+        redirectNote.style.display = 'block';
+      } else {
+        // Desktop has no app to hand a custom scheme to, so a plain https
+        // redirect isn't blocked the way scheme navigation is - safe to
+        // go there automatically.
+        redirectNote.textContent = 'Returning to bedee.com…';
+        redirectNote.style.display = 'block';
+        setTimeout(function () { window.location.href = finalUrl; }, 300);
+      }
     } else {
       backButton.style.display = 'none';
     }
-
-    backButton.addEventListener('click', function () {
-      goToMerchant();
-    });
   })();
 </script>
 </body>
