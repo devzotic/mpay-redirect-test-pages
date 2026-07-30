@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mPAY Payment Success Redirect</title>
+</head>
+<body>
+<h2 class="sr-only">Payment success status page for mPAY 3DS redirect testing</h2>
+<style>
+  :root {
+    --bg: #F3F5F1;
+    --surface: #FFFFFF;
+    --border: #DDE5D9;
+    --text-primary: #232A22;
+    --text-secondary: #5E6B5A;
+    --text-muted: #8D9788;
+    --accent: #2F7D4F;
+    --accent-bg: #E7F3EA;
+    --accent-border: #B9DCC0;
+    --focus: #2F7D4F;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #171B16;
+      --surface: #1F241D;
+      --border: #333B30;
+      --text-primary: #EAF0E7;
+      --text-secondary: #ABB8A6;
+      --text-muted: #798674;
+      --accent: #7FCB9B;
+      --accent-bg: #1E3327;
+      --accent-border: #2F5A3F;
+      --focus: #7FCB9B;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #171B16;
+    --surface: #1F241D;
+    --border: #333B30;
+    --text-primary: #EAF0E7;
+    --text-secondary: #ABB8A6;
+    --text-muted: #798674;
+    --accent: #7FCB9B;
+    --accent-bg: #1E3327;
+    --accent-border: #2F5A3F;
+    --focus: #7FCB9B;
+  }
+  :root[data-theme="light"] {
+    --bg: #F3F5F1;
+    --surface: #FFFFFF;
+    --border: #DDE5D9;
+    --text-primary: #232A22;
+    --text-secondary: #5E6B5A;
+    --text-muted: #8D9788;
+    --accent: #2F7D4F;
+    --accent-bg: #E7F3EA;
+    --accent-border: #B9DCC0;
+    --focus: #2F7D4F;
+  }
+
+  * { box-sizing: border-box; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    overflow: hidden; clip: rect(0,0,0,0);
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 460px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 40px 32px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .status-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .status-icon svg { width: 26px; height: 26px; }
+
+  .heading-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+  .subcopy {
+    margin: 0;
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--text-secondary);
+    max-width: 34ch;
+  }
+
+  .details {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-label {
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .detail-value {
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    color: var(--text-primary);
+    text-align: right;
+    word-break: break-all;
+  }
+  .details.empty {
+    display: none;
+  }
+
+  .footer-note {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .cta-button {
+    appearance: none;
+    border: none;
+    border-radius: 10px;
+    background: var(--accent);
+    color: var(--surface);
+    font-size: 14.5px;
+    font-weight: 600;
+    padding: 13px 16px;
+    cursor: pointer;
+    width: 100%;
+  }
+  .cta-button:active { opacity: 0.85; }
+</style>
+
+<div class="card">
+  <div class="status-icon">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9.25" stroke="var(--accent)" stroke-width="1.6"/>
+      <path d="M8 12.5L10.7 15.2L16 9.3" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="heading-group">
+    <h1>Payment completed</h1>
+    <p class="subcopy" id="subcopy">3-D Secure authentication passed and the gateway accepted the charge.</p>
+  </div>
+
+  <div class="details" id="details"></div>
+
+  <p class="redirect-note" id="redirect-note"></p>
+
+  <button type="button" class="cta-button" id="back-to-merchant-btn">Back to BeDee</button>
+
+  <p class="footer-note" id="footer-note">
+    mPAY test redirect target — MPAY_REDIRECT_SUCCESS_URL. This page is for local/UAT integration testing only.
+  </p>
+</div>
+
+<script>
+  (function () {
+    // mPAY's 3ds_url_success/fail has a 255-char cap, so the backend can
+    // only pass a short env code, not the deep-link/web-fallback URLs
+    // themselves - this lookup table is the per-env source of truth.
+    // TODO: qa/prod deepLink + webFallback are placeholders, not yet
+    // confirmed with the app/web team - replace before QA/Prod rollout.
+    var ENV_CONFIG = {
+      local: { deepLink: 'com.bedee.dev://homeConsult', webFallback: 'https://dev-shop.bedee.com/en' },
+      dev: { deepLink: 'com.bedee.dev://homeConsult', webFallback: 'https://dev-shop.bedee.com/en' },
+      qa: { deepLink: 'com.bedee.qa://homeConsult', webFallback: 'https://qa-shop.bedee.com/en' }, // TODO: placeholder
+      prod: { deepLink: 'com.bedee://homeConsult', webFallback: 'https://shop.bedee.com/en' } // TODO: placeholder
+    };
+
+    var params = new URLSearchParams(window.location.search);
+    var container = document.getElementById('details');
+    var rows = [];
+    params.forEach(function (value, key) {
+      // env only selects the redirect target below, not shown as a
+      // transaction detail row - everything else (orderId, paymentId,
+      // amount, mPAY's own transactionId, etc.) is shown as-is.
+      if (key === 'env') return;
+      rows.push({ key: key, value: value });
+    });
+
+    if (rows.length === 0) {
+      container.classList.add('empty');
+    } else {
+      rows.forEach(function (row) {
+        var el = document.createElement('div');
+        el.className = 'detail-row';
+        var label = document.createElement('span');
+        label.className = 'detail-label';
+        label.textContent = row.key.replace(/_/g, ' ');
+        var value = document.createElement('span');
+        value.className = 'detail-value';
+        value.textContent = row.value;
+        el.appendChild(label);
+        el.appendChild(value);
+        container.appendChild(el);
+      });
+    }
+
+    document.getElementById('footer-note').textContent =
+      'mPAY test redirect target - MPAY_REDIRECT_SUCCESS_URL. Received at ' +
+      new Date().toLocaleString() + '. For local/UAT integration testing only.';
+
+    // App-first, website-fallback redirect - env comes from the backend
+    // (Local/Develop/QA/Production maps to a short code), the actual
+    // deep-link/web-fallback URLs are resolved from ENV_CONFIG above.
+    var cfg = ENV_CONFIG[params.get('env')] || ENV_CONFIG.local;
+    var deepLink = cfg.deepLink;
+    var webFallback = cfg.webFallback;
+    var redirectNote = document.getElementById('redirect-note');
+    var backButton = document.getElementById('back-to-merchant-btn');
+
+    // Carry the transaction params (orderId, paymentId, amount,
+    // transactionId, etc.) through to wherever we send the user back -
+    // deep link or website - so the app/site has the same context.
+    function appendParams(url, rows) {
+      var hasQuery = url.indexOf('?') !== -1;
+      var qs = rows.map(function (r) {
+        return encodeURIComponent(r.key) + '=' + encodeURIComponent(r.value);
+      }).join('&');
+      if (!qs) return url;
+      return url + (hasQuery ? '&' : '?') + qs;
+    }
+
+    // Shared by the automatic attempt on load and the manual button click -
+    // tries the app deep link first, falls back to the website if the app
+    // doesn't take over the tab within `delay` ms (detected via
+    // visibilitychange, since a successful app-open backgrounds this tab).
+    function attemptAppOpen(delay) {
+      if (!deepLink || !webFallback) return;
+      var finalDeepLink = appendParams(deepLink, rows);
+      var finalWebFallback = appendParams(webFallback, rows);
+
+      redirectNote.textContent = 'Opening the BeDee app…';
+      redirectNote.style.display = 'block';
+
+      var fallbackTimer = setTimeout(function () {
+        redirectNote.textContent = 'Returning to bedee.com…';
+        window.location.href = finalWebFallback;
+      }, delay);
+
+      document.addEventListener('visibilitychange', function onVisibility() {
+        if (document.hidden) {
+          clearTimeout(fallbackTimer);
+          document.removeEventListener('visibilitychange', onVisibility);
+        }
+      });
+
+      window.location.href = finalDeepLink;
+    }
+
+    if (deepLink && webFallback) {
+      setTimeout(function () { attemptAppOpen(2500); }, 300);
+    } else {
+      backButton.style.display = 'none';
+    }
+
+    backButton.addEventListener('click', function () {
+      attemptAppOpen(1500);
+    });
+  })();
+</script>
+</body>
+</html>
