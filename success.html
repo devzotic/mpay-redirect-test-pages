@@ -187,6 +187,32 @@
     width: 100%;
   }
   .cta-button:active { opacity: 0.85; }
+
+  .cta-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .countdown-badge {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 999px;
+    padding: 2px 9px;
+    font-size: 13px;
+  }
+
+  .countdown-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .countdown-text {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
 </style>
 
 <div class="card">
@@ -204,9 +230,16 @@
 
   <div class="details" id="details"></div>
 
+  <div class="countdown-wrap" id="countdown-wrap">
+    <p class="countdown-text" id="countdown-text"></p>
+  </div>
+
   <p class="redirect-note" id="redirect-note"></p>
 
-  <button type="button" class="cta-button" id="back-to-merchant-btn">Back to BeDee</button>
+  <button type="button" class="cta-button" id="back-to-merchant-btn">
+    <span>Back to BeDee</span>
+    <span class="countdown-badge" id="countdown-badge"></span>
+  </button>
 
   <p class="footer-note" id="footer-note">
     mPAY test redirect target — MPAY_REDIRECT_SUCCESS_URL. This page is for local/UAT integration testing only.
@@ -268,6 +301,9 @@
     var webFallback = cfg.webFallback;
     var redirectNote = document.getElementById('redirect-note');
     var backButton = document.getElementById('back-to-merchant-btn');
+    var countdownWrap = document.getElementById('countdown-wrap');
+    var countdownText = document.getElementById('countdown-text');
+    var countdownBadge = document.getElementById('countdown-badge');
 
     // Carry the transaction params (orderId, paymentId, amount,
     // transactionId, etc.) through to wherever we send the user back -
@@ -308,13 +344,50 @@
       window.location.href = finalDeepLink;
     }
 
+    // Visible countdown gives the tester time to read the page and decide -
+    // auto-redirects when it hits 0, or the button jumps straight to the
+    // redirect attempt and cancels the countdown. Numeric seconds shown on
+    // the track and right on the button itself.
+    var COUNTDOWN_SECONDS = 120;
+    var remaining = COUNTDOWN_SECONDS;
+    var countdownTimer = null;
+
+    function updateCountdownUI() {
+      countdownText.textContent = 'Redirecting automatically in ' + remaining + 's — or tap the button below to go now.';
+      countdownBadge.textContent = remaining + 's';
+    }
+
+    function stopCountdown() {
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+      }
+      countdownWrap.style.display = 'none';
+      countdownBadge.textContent = '';
+    }
+
+    function startCountdown() {
+      updateCountdownUI();
+      countdownTimer = setInterval(function () {
+        remaining -= 1;
+        if (remaining <= 0) {
+          stopCountdown();
+          attemptAppOpen(2500);
+        } else {
+          updateCountdownUI();
+        }
+      }, 1000);
+    }
+
     if (deepLink && webFallback) {
-      setTimeout(function () { attemptAppOpen(2500); }, 300);
+      startCountdown();
     } else {
+      countdownWrap.style.display = 'none';
       backButton.style.display = 'none';
     }
 
     backButton.addEventListener('click', function () {
+      stopCountdown();
       attemptAppOpen(1500);
     });
   })();

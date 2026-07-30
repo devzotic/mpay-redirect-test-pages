@@ -188,23 +188,25 @@
   }
   .cta-button:active { opacity: 0.85; }
 
+  .cta-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .countdown-badge {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 999px;
+    padding: 2px 9px;
+    font-size: 13px;
+  }
+
   .countdown-wrap {
     display: flex;
     flex-direction: column;
     gap: 8px;
-  }
-  .countdown-track {
-    width: 100%;
-    height: 6px;
-    border-radius: 999px;
-    background: var(--accent-bg);
-    overflow: hidden;
-  }
-  .countdown-bar {
-    height: 100%;
-    width: 100%;
-    background: var(--accent);
-    transition: width 1s linear;
   }
   .countdown-text {
     margin: 0;
@@ -229,13 +231,15 @@
   <div class="details" id="details"></div>
 
   <div class="countdown-wrap" id="countdown-wrap">
-    <div class="countdown-track"><div class="countdown-bar" id="countdown-bar"></div></div>
     <p class="countdown-text" id="countdown-text"></p>
   </div>
 
   <p class="redirect-note" id="redirect-note"></p>
 
-  <button type="button" class="cta-button" id="back-to-merchant-btn">Back to BeDee</button>
+  <button type="button" class="cta-button" id="back-to-merchant-btn">
+    <span>Back to BeDee</span>
+    <span class="countdown-badge" id="countdown-badge"></span>
+  </button>
 
   <p class="footer-note" id="footer-note">
     mPAY test redirect target — MPAY_REDIRECT_FAIL_URL. This page is for local/UAT integration testing only.
@@ -298,8 +302,8 @@
     var redirectNote = document.getElementById('redirect-note');
     var backButton = document.getElementById('back-to-merchant-btn');
     var countdownWrap = document.getElementById('countdown-wrap');
-    var countdownBar = document.getElementById('countdown-bar');
     var countdownText = document.getElementById('countdown-text');
+    var countdownBadge = document.getElementById('countdown-badge');
 
     // Carry the transaction params (orderId, paymentId, amount,
     // transactionId, etc.) through to wherever we send the user back -
@@ -348,8 +352,8 @@
     var countdownTimer = null;
 
     function updateCountdownUI() {
-      countdownBar.style.width = (remaining / COUNTDOWN_SECONDS * 100) + '%';
       countdownText.textContent = 'Redirecting automatically in ' + remaining + 's — or tap the button below to go now.';
+      countdownBadge.textContent = remaining + 's';
     }
 
     function stopCountdown() {
@@ -358,6 +362,7 @@
         countdownTimer = null;
       }
       countdownWrap.style.display = 'none';
+      countdownBadge.textContent = '';
     }
 
     function startCountdown() {
