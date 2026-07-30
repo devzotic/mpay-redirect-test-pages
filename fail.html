@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mPAY Payment Fail Redirect</title>
+</head>
+<body>
+<h2 class="sr-only">Payment failed status page for mPAY 3DS redirect testing</h2>
+<style>
+  :root {
+    --bg: #F6F3EF;
+    --surface: #FFFFFF;
+    --border: #E4DED5;
+    --text-primary: #2A2422;
+    --text-secondary: #6B6058;
+    --text-muted: #9A9088;
+    --accent: #B8432E;
+    --accent-bg: #FBEAE5;
+    --accent-border: #E7B8AA;
+    --focus: #B8432E;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1B1815;
+      --surface: #241F1B;
+      --border: #38312B;
+      --text-primary: #F1ECE6;
+      --text-secondary: #B6ABA0;
+      --text-muted: #7D7369;
+      --accent: #E68A78;
+      --accent-bg: #3A231E;
+      --accent-border: #5C3229;
+      --focus: #E68A78;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1B1815;
+    --surface: #241F1B;
+    --border: #38312B;
+    --text-primary: #F1ECE6;
+    --text-secondary: #B6ABA0;
+    --text-muted: #7D7369;
+    --accent: #E68A78;
+    --accent-bg: #3A231E;
+    --accent-border: #5C3229;
+    --focus: #E68A78;
+  }
+  :root[data-theme="light"] {
+    --bg: #F6F3EF;
+    --surface: #FFFFFF;
+    --border: #E4DED5;
+    --text-primary: #2A2422;
+    --text-secondary: #6B6058;
+    --text-muted: #9A9088;
+    --accent: #B8432E;
+    --accent-bg: #FBEAE5;
+    --accent-border: #E7B8AA;
+    --focus: #B8432E;
+  }
+
+  * { box-sizing: border-box; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    overflow: hidden; clip: rect(0,0,0,0);
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 460px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 40px 32px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .status-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .status-icon svg { width: 26px; height: 26px; }
+
+  .heading-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+  .subcopy {
+    margin: 0;
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--text-secondary);
+    max-width: 34ch;
+  }
+
+  .details {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-label {
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .detail-value {
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    color: var(--text-primary);
+    text-align: right;
+    word-break: break-all;
+  }
+  .details.empty {
+    display: none;
+  }
+
+  .footer-note {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+</style>
+
+<div class="card">
+  <div class="status-icon">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9.25" stroke="var(--accent)" stroke-width="1.6"/>
+      <path d="M9 9L15 15M15 9L9 15" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+  </div>
+
+  <div class="heading-group">
+    <h1>Payment wasn't completed</h1>
+    <p class="subcopy" id="subcopy">The card issuer or gateway declined this attempt. No charge was made.</p>
+  </div>
+
+  <div class="details" id="details"></div>
+
+  <p class="footer-note" id="footer-note">
+    mPAY test redirect target — MPAY_REDIRECT_FAIL_URL. This page is for local/UAT integration testing only.
+  </p>
+</div>
+
+<script>
+  (function () {
+    var params = new URLSearchParams(window.location.search);
+    var container = document.getElementById('details');
+    var rows = [];
+    params.forEach(function (value, key) {
+      rows.push({ key: key, value: value });
+    });
+
+    if (rows.length === 0) {
+      container.classList.add('empty');
+    } else {
+      rows.forEach(function (row) {
+        var el = document.createElement('div');
+        el.className = 'detail-row';
+        var label = document.createElement('span');
+        label.className = 'detail-label';
+        label.textContent = row.key.replace(/_/g, ' ');
+        var value = document.createElement('span');
+        value.className = 'detail-value';
+        value.textContent = row.value;
+        el.appendChild(label);
+        el.appendChild(value);
+        container.appendChild(el);
+      });
+    }
+
+    document.getElementById('footer-note').textContent =
+      'mPAY test redirect target - MPAY_REDIRECT_FAIL_URL. Received at ' +
+      new Date().toLocaleString() + '. For local/UAT integration testing only.';
+  })();
+</script>
+</body>
+</html>
