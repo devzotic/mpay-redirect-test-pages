@@ -190,6 +190,8 @@
 
   <div class="details" id="details"></div>
 
+  <p class="redirect-note" id="redirect-note"></p>
+
   <p class="footer-note" id="footer-note">
     mPAY test redirect target — MPAY_REDIRECT_SUCCESS_URL. This page is for local/UAT integration testing only.
   </p>
@@ -201,6 +203,10 @@
     var container = document.getElementById('details');
     var rows = [];
     params.forEach(function (value, key) {
+      // appDeepLink/webFallback drive the redirect below, not shown as a
+      // transaction detail row - everything else (orderId, paymentId,
+      // amount, mPAY's own transactionId, etc.) is shown as-is.
+      if (key === 'appDeepLink' || key === 'webFallback') return;
       rows.push({ key: key, value: value });
     });
 
@@ -225,6 +231,31 @@
     document.getElementById('footer-note').textContent =
       'mPAY test redirect target - MPAY_REDIRECT_SUCCESS_URL. Received at ' +
       new Date().toLocaleString() + '. For local/UAT integration testing only.';
+
+    // App-first, website-fallback redirect - values come from the backend
+    // per environment (Local/Develop/QA/Production), not hardcoded here,
+    // so this same page works unchanged across all of them.
+    var deepLink = params.get('appDeepLink');
+    var webFallback = params.get('webFallback');
+    var redirectNote = document.getElementById('redirect-note');
+
+    if (deepLink && webFallback) {
+      redirectNote.textContent = 'Opening the BeDee app…';
+      redirectNote.style.display = 'block';
+
+      var fallbackTimer = setTimeout(function () {
+        redirectNote.textContent = 'Returning to bedee.com…';
+        window.location.href = webFallback;
+      }, 2500);
+
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) clearTimeout(fallbackTimer);
+      });
+
+      setTimeout(function () {
+        window.location.href = deepLink;
+      }, 300);
+    }
   })();
 </script>
 </body>
